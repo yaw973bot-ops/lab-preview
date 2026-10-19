@@ -60,18 +60,19 @@
 .status dd { margin: 0; font-size: 0.95rem; color: var(--accent); }
 .status dd small { display: block; font-size: 0.74rem; color: var(--text); opacity: 0.55; font-weight: 400; margin-top: 4px; }
 
-/* One line per update. The log grows downward by a single entry at a time, so
-   the whole history stays skimmable in one screen instead of a reading session.
-   Date in its own column, summary beside it. */
+/* One line per update. The log grows by a single line at a time, so the whole
+   history stays skimmable instead of turning into a reading session. Date in
+   its own column, summary beside it, figure under the summary when there is
+   something worth showing. */
 .log { list-style: none; padding: 0; margin: 0 0 44px; }
-.log li {
+.log > li {
     display: flex;
     gap: 18px;
     align-items: baseline;
-    padding: 14px 0;
+    padding: 16px 0;
     border-top: 1px dashed color-mix(in srgb, var(--text) 25%, transparent);
 }
-.log li:first-child { border-top: 0; }
+.log > li:first-child { border-top: 0; }
 .log time {
     flex: 0 0 6.5em;
     font-size: 0.68rem;
@@ -79,6 +80,7 @@
     text-transform: uppercase;
     opacity: 0.45;
 }
+.log .line { flex: 1 1 auto; min-width: 0; }
 .log p {
     margin: 0;
     font-weight: 400;
@@ -86,6 +88,7 @@
     line-height: 1.7;
 }
 .log b { color: var(--accent); font-weight: 700; }
+.log figure { margin: 16px 0 0; }
 
 h3.block {
     font-size: 0.68rem;
@@ -158,7 +161,7 @@ figcaption {
 @media (max-width: 600px) {
     .status div { border-right: 0; border-bottom: 2px solid var(--border); }
     .status div:last-child { border-bottom: 0; }
-    .targets li, .log li { flex-direction: column; gap: 4px; }
+    .targets li, .log > li { flex-direction: column; gap: 4px; }
     .targets b, .log time { flex: none; }
 }
 </style>
@@ -174,7 +177,7 @@ figcaption {
 <div class="lab-wrap log-wrap">
     <header class="log-head">
         <h1>Hexapod</h1>
-        <p class="stand">Six legs, eighteen servos, a deadline in December. One line per update, newest first. Right now only one thing matters: a single leg that moves.</p>
+        <p class="stand">Six legs, eighteen servos, a deadline in December. One line per update, newest first. First job: one leg that moves.</p>
     </header>
 
     <dl class="status">
@@ -195,37 +198,61 @@ figcaption {
     <ol class="log">
         <li>
             <time datetime="2026-10-18">18 Oct 2026</time>
-            <p><b>One axis, two hubs.</b> Femur and drive crank share the hip axis, a hub each, turning independently; the tibia is one rigid piece, so leg swing and knee angle decouple.</p>
+            <div class="line">
+                <p><b>One axis, two hubs.</b> The femur and the drive crank turn on the same hip bolt. Each gets its own hub. The tibia is one solid piece, so leg swing and knee angle come apart.</p>
+                <figure>
+                    <img src="img/hexapod/coaxial-hip.png" alt="Side-view kinematic schematic of one leg: a coxa bracket at the left with a double-ringed pivot where a short orange crank and a long blue femur both begin, a green pushrod running above the femur and roughly parallel to it, and a purple tibia hanging from the knee pivot at the femur's outer end.">
+                    <figcaption>Femur and crank share one bolt at the hip. Blue rings are free pivots.</figcaption>
+                </figure>
+            </div>
         </li>
         <li>
             <time datetime="2026-10-18">18 Oct 2026</time>
-            <p><b>Three handles before three servos.</b> Hand-crank rig instead of motors &mdash; A and B coaxial on the hip, C under the body plate, every hub copying the servo horn pattern. M3 spacer bolts have to clear the crank's swing radius.</p>
+            <div class="line">
+                <p><b>Three handles before three servos.</b> No motors yet. I turn the leg by hand. Handles A and B sit on the hip, handle C under the body. Each hub copies the servo's bolt holes. The M3 spacer bolts have to clear the crank.</p>
+            </div>
         </li>
         <li>
             <time datetime="2026-10-16">16 Oct 2026</time>
-            <p><b>Eighty millimetres, probably.</b> First printed part: the tibia, black PLA, call it 80 mm off the screen. The gap between its two holes <i>is</i> the knee lever, and it is still unmeasured.</p>
+            <div class="line">
+                <p><b>Eighty millimetres, probably.</b> The tibia is printed. Black PLA, about 80 mm. Its two holes set the knee lever. I have not measured them yet.</p>
+                <figure>
+                    <img src="img/hexapod/tibia-print.jpg" alt="Two photographs of the same 3D-printed tibia link lying on a pegboard: a long black tapered blade, widest at the top where a large circular opening sits, with a smaller hole directly above it and the body narrowing to a point at the far end.">
+                    <figcaption>Both knee holes are on this one part. The big seat takes the 623ZZ.</figcaption>
+                </figure>
+            </div>
         </li>
         <li>
             <time datetime="2026-10-16">16 Oct 2026</time>
-            <p><b>Four joints, two bearings.</b> 623ZZ at the hip and knee where real load lives; plain reamed M3 pins at both ends of the pushrod. Twelve needed, fifteen ordered.</p>
+            <div class="line">
+                <p><b>Four joints, two bearings.</b> 623ZZ bearings at the hip and knee, where the load is. Plain M3 pins at both ends of the pushrod. Twelve needed, fifteen ordered.</p>
+                <figure>
+                    <img src="img/hexapod/leg-linkage.jpg" alt="Diagram of the leg linkage: a femur between the hip and knee, a pushrod running above it from a drive crank to a tibia lever, with bearings marked at the hip and knee and plain pins at both ends of the pushrod.">
+                    <figcaption>The leg as a four-bar. Both servos stay on the body; only the links move.</figcaption>
+                </figure>
+            </div>
         </li>
         <li>
             <time datetime="2026-10-14">14 Oct 2026</time>
-            <p><b>CA$24.90 spent.</b> A 400-piece M3 assortment at CA$15.22 and fifteen 623ZZ bearings at CA$9.68, against a CA$50 ceiling. No ball links, no bought spacers &mdash; spacers get printed so they touch only the inner race.</p>
+            <div class="line">
+                <p><b>CA$24.90 spent.</b> An M3 screw set, CA$15.22. Fifteen 623ZZ bearings, CA$9.68. The budget is CA$50. Spacers get printed, not bought.</p>
+            </div>
         </li>
         <li>
             <time datetime="2026-10-14">14 Oct 2026</time>
-            <p><b>What counts as working.</b> Targets written down early so a stopwatch can prove them wrong. Rule at the bottom of the doc: a basic moving leg before aesthetics or AI.</p>
+            <div class="line">
+                <p><b>What counts as working.</b> I wrote the targets down early so a stopwatch can prove them wrong. One rule: get a leg moving before anything pretty.</p>
+            </div>
         </li>
     </ol>
 
     <h3 class="block">Targets, all provisional</h3>
     <ul class="targets">
-        <li><b>Speed</b><span>0.20 m/s on a flat indoor floor over a 2 m run; 0.40 would be a good day.</span></li>
-        <li><b>Mass</b><span>Under 1.50 kg assembled with battery. 1.60 kg is the load case.</span></li>
+        <li><b>Speed</b><span>0.20 m/s on a flat floor, over 2 m. 0.40 would be a good day.</span></li>
+        <li><b>Mass</b><span>Under 1.50 kg with battery. Design against 1.60 kg.</span></li>
         <li><b>Runtime</b><span>Fifteen minutes of walking, not fifteen powered on.</span></li>
-        <li><b>Obstacle</b><span>Clear a 20 mm threshold.</span></li>
-        <li><b>Size</b><span>Roughly 270 mm, leg tip to leg tip.</span></li>
+        <li><b>Obstacle</b><span>Clear a 20 mm step.</span></li>
+        <li><b>Size</b><span>About 270 mm, leg tip to leg tip.</span></li>
     </ul>
 
     <p class="log-foot">Updated from the working document as the design moves. Numbers are provisional until a part has been printed, measured and loaded.</p>
