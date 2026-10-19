@@ -17,13 +17,6 @@ body { min-height: 100svh; }
     background: var(--bg);
     border-bottom: 2px solid var(--border);
 }
-.lab-bar .lab-tag {
-    font-size: 0.74rem;
-    letter-spacing: 2px;
-    opacity: 0.45;
-    margin-right: auto;
-    text-transform: uppercase;
-}
 .lab-bar a {
     padding: 7px 14px;
     font-size: 0.8rem;
@@ -35,6 +28,23 @@ body { min-height: 100svh; }
     opacity: 0.55;
 }
 .lab-bar a:hover { opacity: 1; }
+/* Home sits where the "Projects" label used to, far left, and takes over its
+   margin-right: auto - that is what pushes anything after it (the log page's
+   back link) to the other end of the bar.
+
+   Icon only, so it gets a square rather than the text buttons' 7px/14px.
+   href is "../", not "../index.html": the same two characters resolve from
+   /lab/ whether the site is at a domain root or under a repo path on Pages. */
+.lab-home {
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+}
 .lab-bar a[aria-current="page"] {
     opacity: 1;
     background: var(--accent);
@@ -42,23 +52,69 @@ body { min-height: 100svh; }
 }
 
 .lab-wrap {
-    padding: 86px clamp(16px, 4vw, 40px) 60px;
+    /* --bar-h is the fixed .lab-bar's own height (its content plus 10px of
+       padding either side and a 2px border); the page has to start below it.
+       --head-gap is then the air on both sides of the page heading: once for
+       the clearance above it, again as .lab-head's margin below. Stated once
+       so the two can't drift apart. */
+    --bar-h: 56px;
+    --head-gap: 30px;
+    padding: calc(var(--bar-h) + var(--head-gap)) clamp(16px, 4vw, 40px) 60px;
     max-width: 1400px;
     margin: 0 auto;
 }
-.lab-head { margin-bottom: 28px; }
-.lab-head h1 {
-    font-size: clamp(1.35rem, 3.4vw, 1.95rem);
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 8px;
+/* The heading is the front project's name now, not a page title, so it sits
+   closer to the model it labels. Treatment is lifted from the home page hero:
+   the same inverted highlight block, text in --bg on a --text ground, so a
+   visitor arriving from the front page meets a title they recognise.
+   Deliberately not the accent colour the rest of this page uses - the block
+   is the point, and it flips with the theme on its own. */
+.lab-head {
+    /* Flex rather than a block: an inline-block heading leaves a baseline gap
+       hanging underneath it, which is invisible until you try to match the
+       space above. Centred, so where a reserved line is in play the leftover
+       splits evenly instead of all landing below the words. */
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--head-gap);
 }
-.lab-head p {
-    font-size: 0.97rem;
-    opacity: 0.6;
-    max-width: 70ch;
-    font-weight: 400;
+.lab-head h1 {
+    display: inline-block;
+    color: var(--bg);
+    background: var(--text);
+    font-size: clamp(1.3rem, 3.6vw, 1.8rem);
+    line-height: 1.5;
+    padding: 0 0.5rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    /* The name is typed in a character at a time, so the bar is one character
+       wide on the first frame. Hold the shortest name's width or the block
+       snaps out from a stub every time the ring turns. */
+    min-width: 7ch;
+}
+/* Same blinking underscore the home page hero ends on; @keyframes blink comes
+   from the shared stylesheet. */
+.lab-head h1 .cursor { animation: blink 1s step-end infinite; }
+
+/* ---- fixed controls, bottom right ----
+   .controls-row, .theme-toggle and .audio-toggle all come from the shared
+   stylesheet so these sit exactly where the home page's do. Two corrections
+   for using <button> rather than the home page's <div>: a button does not
+   inherit the page font, and it needs to clear the bar's z-index neighbours
+   - the build-log sticker rides at 150 and would otherwise cover a control
+   where they meet on a short screen. */
+.controls-row { z-index: 400; }
+.controls-row button { font-family: inherit; }
+.controls-row button:hover { filter: brightness(1.15); }
+
+/* Announced, never shown: the typed heading's readable twin. */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 /* ---- shared detail panel ---- */
@@ -100,6 +156,7 @@ body { min-height: 100svh; }
 .detail .d-link:hover { background: var(--accent); color: var(--bg); }
 .detail .d-hint { font-size: 0.88rem; opacity: 0.7; text-align: center; }
 
+/* Panel only. The heading types itself instead. */
 .detail.swap { animation: dSwap 0.3s ease-out both; }
 @keyframes dSwap {
     from { opacity: 0; transform: translateY(8px); }
@@ -110,5 +167,10 @@ body { min-height: 100svh; }
    phone, hence 150px of clearance. It is a label and one button now, so it
    fits on one row and the page can start right under it. */
 @media (max-width: 600px) {
-    .lab-wrap { padding-top: 76px; }
+    .lab-wrap { --head-gap: 20px; }
+    /* Only this narrow do the longer names wrap, and only some of them, so
+       reserve the second line here: otherwise the ring steps down and back
+       as you turn past Cylinder Painting Manipulator. Two lines at the small
+       end of the heading's clamp, 1.3rem at line-height 1.5. */
+    .lab-head { min-height: 3.9rem; }
 }

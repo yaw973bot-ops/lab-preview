@@ -1,10 +1,12 @@
-import { PROJECTS } from './projects.js?v=7';
-import { makeViewer, bootViewer, setViewerModel } from './viewer.js?v=7';
-import { sfx } from './sfx.js?v=7';
+import { PROJECTS } from './projects.js?v=11';
+import { makeViewer, bootViewer, setViewerModel } from './viewer.js?v=11';
+import { sfx } from './sfx.js?v=11';
 
 const box = document.getElementById('orbitBox');
 const track = document.getElementById('track');
 const detail = document.getElementById('detail');
+const title = document.getElementById('projectTitle');
+const announce = document.getElementById('projectAnnounce');
 const N = PROJECTS.length;
 const STEP = (Math.PI * 2) / N;
 
@@ -162,6 +164,46 @@ function go(i) {
 
 const sticker = document.getElementById('sticker');
 
+/* ---- the heading types itself ----
+   Same effect as the home page hero: a character at a time, then a blinking
+   underscore. Faster here, because the hero types once on arrival while this
+   fires on every press of the arrows - 35ms a character is a pause when you
+   are stepping through six projects, 16ms keeps up with you. The hero's
+   deliberate typo-and-backspace is left behind; that is a joke about spelling
+   one specific name, not a thing to do to "RFID Door Lock".
+
+   `run` is the cancel token. Press next twice quickly and the first run must
+   stop, or two timers interleave their characters into the same element. */
+const TYPE_MS = 16;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let run = 0;
+
+function typeTitle(text) {
+    const mine = ++run;
+    // aria-label holds the whole name from the first frame, so the heading is
+    // never exposed half-typed; the live region announces the change once.
+    title.setAttribute('aria-label', text);
+    title.textContent = '';
+    announce.textContent = text;
+    if (reduceMotion.matches) {
+        title.textContent = text;
+        return;
+    }
+    // One text node that grows, rather than appending a node per character:
+    // the cursor then simply stays after it, with nothing to reposition.
+    const typed = document.createTextNode('');
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.textContent = '_';
+    title.append(typed, cursor);
+    let n = 0;
+    (function step() {
+        if (mine !== run || n >= text.length) return;
+        typed.data = text.slice(0, ++n);
+        setTimeout(step, TYPE_MS);
+    })();
+}
+
 function show(i) {
     const p = PROJECTS[i];
     // The sticker rides the model, so it only exists for a project that has a
@@ -181,6 +223,9 @@ function show(i) {
     bootViewer(viewer);
     // Silent on the first paint: sfx stays locked until the visitor acts.
     sfx.arrive();
+    // The page heading is the front project's name, typed out. No swap class
+    // on it any more - a fade-and-rise fighting a type-on read as a stutter.
+    typeTitle(p.name);
     detail.classList.remove('swap');
     void detail.offsetWidth;
     detail.classList.add('swap');
@@ -191,8 +236,9 @@ function show(i) {
         p.url && `<a class="d-link" href="${p.url}" target="_blank" rel="noopener">View code</a>`,
         p.log && `<a class="d-link" href="${p.log}">Build log</a>`,
     ].filter(Boolean).join('');
+    // No name in the panel: the heading above the model already carries it,
+    // and printed twice on one screen it read as a mistake.
     detail.innerHTML =
-        `<h2>${p.name}</h2>` +
         `<ul class="d-tags">${p.tags.map(t => `<li>${t}</li>`).join('')}</ul>` +
         `<p>${p.blurb}</p>` +
         links;
@@ -218,8 +264,11 @@ addEventListener('keydown', e => {
 
 /* ---------- mute ---------- */
 const sfxToggle = document.getElementById('sfxToggle');
+// The icon goes in the inner span, not on the button: that is the shape the
+// home page's .audio-toggle uses, and this now borrows its styling whole.
+const sfxIcon = sfxToggle.querySelector('.audio-icon');
 function paintToggle() {
-    sfxToggle.textContent = sfx.muted ? '🔇' : '🔊';
+    sfxIcon.textContent = sfx.muted ? '🔇' : '🔊';
     sfxToggle.setAttribute('aria-pressed', String(sfx.muted));
 }
 sfxToggle.addEventListener('click', () => {

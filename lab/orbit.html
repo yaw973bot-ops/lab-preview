@@ -6,7 +6,10 @@
 <title>Orbit · Projects Lab</title>
 <link rel="stylesheet" href="../assets/css/style.css?v=1">
 <link rel="stylesheet" href="../assets/css/shooting-stars.css?v=1">
-<link rel="stylesheet" href="lab.css?v=1">
+<link rel="stylesheet" href="lab.css?v=8">
+<!-- In <head> on purpose: it sets data-theme off localStorage before the
+     first paint, so arriving in light mode does not flash dark. -->
+<script src="theme.js?v=1"></script>
 <style>
 /* ==================================================
    PROTOTYPE 2 — ORBIT
@@ -51,20 +54,9 @@
    the other prototypes keep their stars edge to edge. */
 #shootingStarsOverlay { z-index: 1; }
 
-/* Same square the site's own mute button uses, at bar height. */
-.sfx-toggle {
-    width: 34px; height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.95rem;
-    line-height: 1;
-    background: var(--accent);
-    color: var(--bg);
-    border: 2px solid var(--border);
-    cursor: pointer;
-}
-.sfx-toggle:hover { filter: brightness(1.15); }
+/* The mute button used to be a small square in the bar up here. It lives in
+   the fixed controls column bottom right now, same as the home page, and
+   wears that stylesheet's .audio-toggle. */
 .detail {
     position: relative;
     z-index: 2;
@@ -399,14 +391,21 @@
 <div id="shootingStarsOverlay"></div>
 
 <nav class="lab-bar">
-    <span class="lab-tag">Projects</span>
-    <button class="sfx-toggle" id="sfxToggle" type="button" title="Mute/Unmute sound"></button>
+    <a class="lab-home" href="../" title="Home" aria-label="Home"><span aria-hidden="true">🏠</span></a>
 </nav>
 
 <div class="lab-wrap">
+    <!-- The page title is whichever project is at the front, so the model
+         below it is always labelled. It replaces a fixed "Orbit" heading and
+         a paragraph explaining the ring, which the ring explains by turning.
+
+         The heading types itself out. aria-label carries the whole name so
+         the heading is never read half-typed, and the announcement of a
+         change moved to the off-screen live region below - a live region on
+         the heading itself would fire once per keystroke. -->
     <header class="lab-head">
-        <h1>Orbit</h1>
-        <p>The wireframe torus already in your hero becomes the navigation. Projects ride a ring around the core; click one and it swings to the front while its model boots into the centre.</p>
+        <h1 id="projectTitle" aria-label="Hexapod Robot">Hexapod Robot</h1>
+        <span id="projectAnnounce" class="sr-only" aria-live="polite">Hexapod Robot</span>
     </header>
 
     <div class="orbit-layout">
@@ -434,18 +433,26 @@
     </div>
 </div>
 
-<!-- Same footer as the home page, word for word. It is styled by the shared
-     assets/css/style.css already loaded above, so there is nothing to copy
-     across but the markup. -->
+<!-- Where the home page keeps them: fixed, bottom right, in a column, so the
+     same buttons are under your thumb on every page of the site. The classes
+     come from the shared stylesheet; the home page hides the row until you
+     tap to start, which these pages have no equivalent of, hence .visible. -->
+<div class="controls-row visible">
+    <button class="audio-toggle" id="sfxToggle" type="button" title="Mute/Unmute sound" aria-label="Mute or unmute sound"><span class="audio-icon"></span></button>
+    <button class="theme-toggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="theme-icon"></span></button>
+</div>
+
+<!-- The home page footer, less its music credit: the track and its mute
+     toggle live on the home page only, so crediting it here would name
+     something that never plays. Styled by the shared assets/css/style.css
+     already loaded above. -->
 <footer>
     <p>© 2026 Awan Abadullah</p>
     <br>
     <p>this site is maintained by <strong>Yawie</strong> <span style="color: var(--accent)">🤖</span> — an AI assistant running on OpenClaw (claude-opus-5 under the hood), living in a Mac Mini called <em>Banana HQ</em> in Montréal, Canada. <span style="color: var(--accent)">🍌❤️</span></p>
-    <br>
-    <p>🎶 Music: Plinky by Stevia Sphere</p>
 </footer>
 
 <script src="stars.js?v=1"></script>
-<script type="module" src="orbit.js?v=7"></script>
+<script type="module" src="orbit.js?v=11"></script>
 </body>
 </html>
