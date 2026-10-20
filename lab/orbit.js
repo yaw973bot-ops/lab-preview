@@ -1,5 +1,5 @@
-import { PROJECTS } from './projects.js?v=11';
-import { makeViewer, bootViewer, setViewerModel } from './viewer.js?v=11';
+import { PROJECTS, OTHER } from './projects.js?v=14';
+import { makeViewer, bootViewer, setViewerModel } from './viewer.js?v=15';
 import { sfx } from './sfx.js?v=13';
 
 const box = document.getElementById('orbitBox');
@@ -94,7 +94,14 @@ function measure() {
 
     // A node at any angle lands inside the box: widest sideways, lowest and
     // highest down and up. Vertical room is asymmetric because the label hangs.
-    R = Math.min(250, ...g.map(n =>
+    /* The ceiling used to be 250, which never bound at the box's usual width -
+       the label-clearance constraint below lands around 237 there - but did
+       the moment the box went full-width on a collection card. The ring then
+       stayed its old size in a box nearly twice as wide and the thing read as
+       a frame around nothing, which is the failure this page keeps finding.
+       420 is high enough to let the ring open out and still be the constraint
+       that decides, so normal cards are completely unaffected. */
+    R = Math.min(420, ...g.map(n =>
         Math.abs(n.sin) < 0.01 ? Infinity : (w - n.hw) / Math.abs(n.sin)));
     TILT = Math.min(R * LEAN, ...g.map(n => {
         const reach = n.cos > 0 ? n.down : n.up;   // which end leads the way out
@@ -204,11 +211,63 @@ function typeTitle(text) {
     })();
 }
 
+const subCards = document.getElementById('subCards');
+const layout = document.querySelector('.orbit-layout');
+const counter = document.getElementById('counter');
+
+/* A card that stands for several projects shows them as CAD boxes under the
+   ring instead of hiding them behind a press. Which projects is decided here
+   rather than by an id check in show(), so a second collection card would need
+   no new code. */
+const COLLECTIONS = { other: OTHER };
+
+/* Built once, on the first card that needs them, and then only shown and
+   hidden. Rebuilding per selection would stand up three WebGL viewers every
+   time the ring came back round to this card; viewer.js retires a viewer when
+   its canvas leaves the document, so the old ones would churn for nothing. */
+let cardViewers = null;
+
+function buildCards(p, items) {
+    /* Each card carries what the standalone page used to: the model, the name,
+       its tags, the blurb and the way to the code. An article rather than one
+       big anchor - the View code button is the link, and a button nested
+       inside a link is not markup a browser will accept. */
+    subCards.innerHTML = items.map(o =>
+        `<article class="ocard">` +
+            `<canvas data-model="${o.id}"></canvas>` +
+            `<span class="ocard-tag">placeholder</span>` +
+            `<div class="ocard-body">` +
+                `<h3 class="ocard-name">${o.name}</h3>` +
+                `<ul class="ocard-tags">${o.tags.map(t => `<li>${t}</li>`).join('')}</ul>` +
+                `<p>${o.blurb}</p>` +
+                (o.url
+                    ? `<a class="ocard-link" href="${o.url}" target="_blank" rel="noopener">View code</a>`
+                    : '') +
+            `</div>` +
+        `</article>`).join('');
+    cardViewers = [...subCards.querySelectorAll('canvas')]
+        .map(c => makeViewer(c, c.dataset.model))
+        .filter(Boolean);
+}
+
 function show(i) {
     const p = PROJECTS[i];
-    // The sticker rides the model, so it only exists for a project that has a
-    // log to open. Re-triggering the animation is what makes it read as being
-    // pressed on each time rather than fading in with the panel.
+
+    // Counted from the list, not written down anywhere: adding a project to
+    // projects.js moves the total on its own.
+    counter.innerHTML = `<b>${i + 1}</b>/${N}`;
+
+    /* What the card leads to, and how it says so. Three shapes:
+         log:   a build still being written - sticker over the model
+         items: a card standing for several projects - a row of CAD cards
+                below, replacing the detail panel entirely. Each one carries
+                its own model, tags, blurb and View code button, so the card
+                itself needs no sticker and no button of its own
+         url:   a finished project - 'View code' in the panel
+       The sticker rides the model, so re-triggering its animation is what
+       makes it read as being pressed on each time rather than fading in with
+       the panel. */
+    const items = COLLECTIONS[p.id];
     sticker.hidden = !p.log;
     if (p.log) {
         sticker.href = p.log;
@@ -217,6 +276,7 @@ function show(i) {
         void sticker.offsetWidth;
         sticker.style.animation = '';
     }
+
     // setViewerModel only boots when the geometry actually changes, so boot
     // again here: that covers the first paint and re-picking the front node.
     setViewerModel(viewer, p.id);
@@ -226,12 +286,30 @@ function show(i) {
     // The page heading is the front project's name, typed out. No swap class
     // on it any more - a fade-and-rise fighting a type-on read as a stutter.
     typeTitle(p.name);
+
+    /* The CAD boxes and the detail panel are alternatives, never both: the
+       boxes went in precisely because the numbered list and the blurb were the
+       two things he wanted gone from this card. */
+    subCards.hidden = !items;
+    detail.hidden = !!items;
+    /* With the panel gone the second column is free, so the ring box takes it
+       rather than leaving a lake of starfield beside itself. Only on this kind
+       of card - every other one still needs that column for its panel. */
+    layout.classList.toggle('wide', !!items);
+    if (items) {
+        if (!cardViewers) buildCards(p, items);
+        subCards.setAttribute('aria-label', `The ${items.length} projects on ${p.name}`);
+        // Turn into place on each arrival, the way the ring's own model does.
+        cardViewers.forEach(bootViewer);
+        return;
+    }
+
     detail.classList.remove('swap');
     void detail.offsetWidth;
     detail.classList.add('swap');
-    // A finished project points at its repo; one still being built points at its
-    // log. A project with neither just drops the anchor rather than rendering a
-    // dead button.
+    /* A finished project points at its repo; one still being built points at
+       its log. A project with neither just drops the anchor rather than
+       rendering a dead button. */
     const links = [
         p.url && `<a class="d-link" href="${p.url}" target="_blank" rel="noopener">View code</a>`,
         p.log && `<a class="d-link" href="${p.log}">Build log</a>`,
